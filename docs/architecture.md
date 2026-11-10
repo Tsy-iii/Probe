@@ -83,4 +83,4 @@ Validation: [order tests](../tests/test_orders.py), [product management](../test
 
 ## Deliberate boundaries
 
-Current verification covers the local project, including multiple local Workers and controlled failures. There is no production deployment claim, capacity result, hosted service, formal committed Playwright suite. A GitHub Actions workflow is configured; its first Linux run is pending. The executor requires POSIX; Linux remains unverified and Windows is not supported by the current process-control path.
+Current verification covers the local project, including multiple local Workers and controlled failures. There is no production deployment claim, capacity result, hosted service, formal committed Playwright suite. A [GitHub Actions run](https://github.com/Tsy-iii/Probe/actions/runs/42786973058) has verified the regression and frontend build on Ubuntu 24.04. The executor requires POSIX; other Linux configurations remain unverified and Windows is not supported by the current process-control path.

@@ -50,10 +50,10 @@ npm run build
 ### 尚未验证
 
 - Docker Compose 配置已提供，本机没有 Docker，尚未实际启动该路径。
-- Linux 未实测；当前 Worker 进程控制路径不支持 Windows。
-- GitHub Actions 已配置，首次云端执行结果待确认。
+- Linux 已在 Ubuntu 24.04 CI 验证；其他 Linux 环境未逐一验证，当前 Worker 进程控制路径不支持 Windows。
+- GitHub Actions [首次运行](https://github.com/Tsy-iii/Probe/actions/runs/42786973058)已通过：194 passed、0 failed、0 skipped，前端构建及迁移检查通过。环境为 Ubuntu 24.04、Python 3.14.10、Node.js 22.23.4、PostgreSQL 17.11；不代表生产部署验证。
 - 浏览器接受检查使用过本地 Playwright 脚本，尚未提交正式 UI 测试体系。
-- 本地 Mermaid 解析不替代发布后对 GitHub 渲染的目视确认。
+- 两份主 README 的截图和 Mermaid 已在 GitHub 实际加载/渲染核对；其他文档的 GitHub 展示未逐页验收。
 
 ## 各类验证能证明什么
 

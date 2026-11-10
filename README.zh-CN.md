@@ -1,5 +1,7 @@
 # Probe
 
+[![CI](https://github.com/Tsy-iii/Probe/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Tsy-iii/Probe/actions/workflows/ci.yml)
+
 **面向测试开发／SDET 的本地接口测试执行与失败证据工作台。**
 
 从真实 pytest 用例中选择执行范围，在隔离的执行尝试中运行测试，再通过断言输出、HTTP 请求响应、数据库状态和服务日志分析失败。
@@ -88,7 +90,7 @@ flowchart LR
 - Python **3.14**：对应当前记录的依赖环境。
 - Node.js **22.12+** 或 **20.19+**，以及 npm。
 - PostgreSQL **17**：可以使用已有本地实例、Docker Compose，或下方项目内启动工具。
-- Worker 进程控制需要 POSIX 环境。本地验证使用 macOS arm64；Linux 执行尚未验证。
+- Worker 进程控制需要 POSIX 环境。已验证 macOS arm64 本地运行及 Ubuntu 24.04 CI；这不代表验证了所有 POSIX 系统。
 
 ### 1. 安装依赖并配置环境
 
@@ -203,12 +205,12 @@ npm run build
 
 默认收集包含 HTTP 契约、PostgreSQL 业务、真实 TCP 请求和平台执行／恢复测试。受控失败演示由平台显式选择；外层测试通过可以表示它正确验证了内层任务的失败。
 
-单独的 HTTP 契约测试不能证明数据库事务。PostgreSQL 测试检查真实提交结果、竞争、回滚和清理，每条用例通过 fixture 重建数据。本地浏览器验收使用过 Playwright 脚本，但尚无正式提交的 Playwright 套件。[GitHub Actions](docs/ci.md) 已配置 PostgreSQL 回归与前端构建，首次云端结果待确认。
+单独的 HTTP 契约测试不能证明数据库事务。PostgreSQL 测试检查真实提交结果、竞争、回滚和清理，每条用例通过 fixture 重建数据。本地浏览器验收使用过 Playwright 脚本，但尚无正式提交的 Playwright 套件。[GitHub Actions](docs/ci.md) 已配置 PostgreSQL 回归与前端构建，[首次云端执行](https://github.com/Tsy-iii/Probe/actions/runs/42786973058)已通过：194 条回归和前端构建。
 
 ## 已知边界
 
 - 当前面向本地可信测试套件，没有认证、多租户、任意测试上传或安全沙箱。
-- 已验证本地多 Worker 行为；生产部署、容量、分布式故障及 Linux 执行尚未验证。
+- 已验证本地多 Worker 行为；生产部署、容量及跨主机分布式故障尚未验证；Linux 验证范围为 Ubuntu 24.04 CI。
 - Worker 丢失可能产生新尝试，不宣称测试执行或外部副作用的 exactly-once。
 - 创建订单没有幂等键。响应丢失后，应先查询订单状态，再决定是否创建另一笔订单。
 - 支付仅为模拟，没有真实扣款、退款、生产用户或外部业务接入。
@@ -243,4 +245,4 @@ Probe 运行时不调用 AI 服务。
 
 MIT License，见 [LICENSE](LICENSE)。
 
-源码：[Tsy-iii/Probe](https://github.com/Tsy-iii/Probe) · [Issues](https://github.com/Tsy-iii/Probe/issues) · [GitHub Actions](https://github.com/Tsy-iii/Probe/actions/workflows/ci.yml)。仓库公开，没有提供托管演示网站；CI 结果在真实运行后记录。
+源码：[Tsy-iii/Probe](https://github.com/Tsy-iii/Probe) · [Issues](https://github.com/Tsy-iii/Probe/issues) · [GitHub Actions](https://github.com/Tsy-iii/Probe/actions/workflows/ci.yml)。仓库公开，没有提供托管演示网站；[首次 CI](https://github.com/Tsy-iii/Probe/actions/runs/42786973058)已真实通过；CI 徽章动态显示工作流状态。

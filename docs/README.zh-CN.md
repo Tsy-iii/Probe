@@ -44,6 +44,7 @@ Probe 是一个本地接口测试执行与失败证据工作台：从真实 pyte
 | 将演示接口纳入回归 | [演示接口回归套件](demo-suite.md) |
 | 排查本地运行条件 | [环境检查](environment-check.md) |
 | 项目迭代历史 | [开发历史](development-history.md) |
+| GitHub Actions | [CI 配置、运行与产物](ci.md) |
 | 发布前检查 | [公开发布检查](public-release.md) |
 
 ## 启动后常见问题

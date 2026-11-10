@@ -93,4 +93,4 @@ Worker 在启动 pytest 前创建两份空间，并把连接 URL、订单 schema
 
 完整回归曾发现新增环境检查 ID 未同步响应模型，导致环境检查报错；已修复并重新验证通过。受控断言失败、取消、启动失败和替代 Worker 清理均在独立测试空间验证，不污染工作台的演示数据。
 
-本地基础能力已具备接入基础 CI 的条件。下一步 GitHub Actions 可限定为 PostgreSQL 服务、依赖安装、完整 pytest、前端构建，以及失败时保留 JUnit／日志。GitHub 仓库已创建，CI 配置见 [GitHub Actions](ci.md)；首次云端执行和 Linux 验证结果待实际运行确认。
+本地基础能力已具备接入基础 CI 的条件。下一步 GitHub Actions 可限定为 PostgreSQL 服务、依赖安装、完整 pytest、前端构建，以及失败时保留 JUnit／日志。GitHub 仓库已创建，CI 配置见 [GitHub Actions](ci.md)；[首次云端执行](https://github.com/Tsy-iii/Probe/actions/runs/42786973058)在 Ubuntu 24.04 通过完整回归与前端构建。

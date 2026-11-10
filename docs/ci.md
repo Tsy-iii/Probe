@@ -28,4 +28,14 @@ CI 验证的是当前版本代码在指定环境下的测试结果。它不证�
 
 ## 首次运行状态
 
-工作流已配置，首次云端结果待实际推送后确认。通过或失败均以 GitHub Actions 记录为准，尚未填写成功数字或通过徽章。
+2026-11-10：[首次运行](https://github.com/Tsy-iii/Probe/actions/runs/42786973058)通过，run attempt 为 1，没有通过重跑掩盖失败。
+
+| 检查 | 实际结果 |
+| --- | --- |
+| 后端 | 194 passed、0 failed、0 skipped，1 条既有 TestClient 弃用提示 |
+| 迁移 | 平台 head 为 `0004_rerun_source`，Alembic check 没有新升级操作 |
+| 前端 | npm ci、TypeScript 和 Vite 构建通过 |
+| 运行环境 | Ubuntu 24.04，Python 3.14.10，Node.js 22.23.4，PostgreSQL 17.11 |
+| 产物 | 后端 JUnit／pytest 日志和前端 dist 已上传并下载核对 |
+
+验证的代码提交为 `5b9df75272f8f7b63a87397fb1fd9e42aec3b32c`。后续只更新 Markdown 说明的提交按 paths-ignore 跳过自动执行，不改变本次验证的程序代码。CI 结果不作为性能或生产容量承诺。

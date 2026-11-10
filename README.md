@@ -1,5 +1,7 @@
 # Probe
 
+[![CI](https://github.com/Tsy-iii/Probe/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Tsy-iii/Probe/actions/workflows/ci.yml)
+
 **A local API test execution and failure-evidence workbench for SDET workflows.**
 
 Select real pytest cases, execute them in isolated attempts, and inspect a failure through its assertion output, HTTP exchanges, database state, and service logs.
@@ -88,7 +90,7 @@ Run commands from the repository root after cloning or downloading the project.
 - Python **3.14** for the recorded dependency environment.
 - Node.js **22.12+** or **20.19+**, with npm.
 - PostgreSQL **17**. Use an existing local instance, Docker Compose, or the optional project-local server below.
-- A POSIX environment for Worker process control. Recorded local verification used macOS arm64; Linux execution has not yet been validated.
+- A POSIX environment for Worker process control. Verification covers local macOS arm64 and Ubuntu 24.04 CI; it does not establish support for every POSIX system.
 
 ### 1. Install dependencies and configure the environment
 
@@ -203,12 +205,12 @@ Latest local regression verified on **2026-11-10**: **194 passed, 0 failed, 0 sk
 
 The default collection includes HTTP contracts, PostgreSQL business tests, real TCP requests, and platform execution/recovery tests. Controlled failure demos are selected explicitly by the platform; an outer test may pass because it correctly verifies an inner run's failure.
 
-HTTP contracts alone do not prove database transactions. PostgreSQL tests inspect actual committed state, contention, rollback, and cleanup. Database fixtures rebuild data for each case. Browser acceptance has used local Playwright scripts, but there is no committed formal Playwright suite. A [GitHub Actions workflow](docs/ci.md) now runs PostgreSQL regression and frontend build checks; its first cloud result is pending.
+HTTP contracts alone do not prove database transactions. PostgreSQL tests inspect actual committed state, contention, rollback, and cleanup. Database fixtures rebuild data for each case. Browser acceptance has used local Playwright scripts, but there is no committed formal Playwright suite. A [GitHub Actions workflow](docs/ci.md) now runs PostgreSQL regression and frontend build checks; [its first cloud run](https://github.com/Tsy-iii/Probe/actions/runs/42786973058) passed 194 regression checks and the frontend build.
 
 ## Known limits
 
 - Designed for local, trusted test suites. There is no authentication, tenant isolation, arbitrary test upload, or security sandbox.
-- Local multi-Worker behavior is tested; production deployment, capacity, distributed failure modes, and Linux execution remain unverified.
+- Local multi-Worker behavior is tested; production deployment, capacity, and cross-host distributed failure modes remain unverified. Linux verification is scoped to Ubuntu 24.04 CI.
 - Worker loss can lead to a new attempt. The platform does not claim exactly-once test execution or external side effects.
 - Order creation has no idempotency key. If a response is lost, query the order state before sending another creation request.
 - Payment is simulated. There are no real charges, refunds, production users, or external business integrations.
@@ -243,4 +245,4 @@ Probe does not call an AI service at runtime.
 
 MIT License — see [LICENSE](LICENSE).
 
-Source: [Tsy-iii/Probe](https://github.com/Tsy-iii/Probe) · [Issues](https://github.com/Tsy-iii/Probe/issues) · [GitHub Actions](https://github.com/Tsy-iii/Probe/actions/workflows/ci.yml). The repository is public. No hosted demo is provided; the first CI result will be recorded after it runs.
+Source: [Tsy-iii/Probe](https://github.com/Tsy-iii/Probe) · [Issues](https://github.com/Tsy-iii/Probe/issues) · [GitHub Actions](https://github.com/Tsy-iii/Probe/actions/workflows/ci.yml). The repository is public. No hosted demo is provided; [the first CI run](https://github.com/Tsy-iii/Probe/actions/runs/42786973058) passed, and the CI badge reflects the workflow status.
