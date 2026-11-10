@@ -1,0 +1,20 @@
+name: probe
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: probe
+      POSTGRES_PASSWORD: probe_local
+      POSTGRES_DB: probe
+    ports:
+      - "127.0.0.1:${PROBE_DB_PORT:-5433}:5432"
+    volumes:
+      - probe_pgdata:/var/lib/postgresql/data
+      - ./scripts/init-test-db.sql:/docker-entrypoint-initdb.d/01-test-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U probe -d probe"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+volumes:
+  probe_pgdata:

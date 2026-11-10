@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/images/**'
+      - LICENSE
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/images/**'
+      - LICENSE
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: PostgreSQL regression
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      # Disposable CI database credentials; never use the local .env in Actions.
+      DATABASE_URL: postgresql+psycopg://probe:probe_ci@127.0.0.1:5432/probe
+      TEST_DATABASE_URL: postgresql+psycopg://probe:probe_ci@127.0.0.1:5432/probe_test
+      PROBE_PLATFORM_DATABASE_URL: postgresql+psycopg://probe:probe_ci@127.0.0.1:5432/probe_platform
+      PLATFORM_TEST_DATABASE_URL: postgresql+psycopg://probe:probe_ci@127.0.0.1:5432/probe_platform_test
+      APP_ENV: development
+      FAULT_INJECTION_ENABLED: 'false'
+      PYTHONUNBUFFERED: '1'
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: probe
+          POSTGRES_PASSWORD: probe_ci
+          POSTGRES_DB: probe
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U probe -d probe"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: requirements.lock.txt
+      - name: Install locked dependencies
+        run: python -m pip install -r requirements.lock.txt
+      - name: Initialize isolated databases and schemas
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          import psycopg
+          url = os.environ['DATABASE_URL'].replace('postgresql+psycopg://', 'postgresql://', 1)
+          with psycopg.connect(url, autocommit=True) as connection:
+              print(connection.execute('SELECT version()').fetchone()[0])
+              for statement in Path('scripts/init-test-db.sql').read_text().split(';'):
+                  if statement.strip():
+                      connection.execute(statement)
+          PY
+          python -m probe.manage init-db
+          python -m probe.manage seed
+          python -m probe.platform.manage init-db
+      - name: Check platform migration drift
+        run: |
+          python -m alembic current
+          python -m alembic check
+      - name: Run PostgreSQL and API regression
+        run: |
+          mkdir -p test-results
+          set -o pipefail
+          python -m pytest --require-postgres -q --junitxml=test-results/regression.xml 2>&1 | tee test-results/pytest.log
+      - name: Preserve regression evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: backend-regression-${{ github.run_id }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 14
+
+  frontend:
+    name: Frontend typecheck and build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies and build
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+      - name: Preserve build output
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: frontend-build-${{ github.run_id }}
+          path: frontend/dist/
+          retention-days: 14

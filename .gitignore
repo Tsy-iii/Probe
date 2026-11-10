@@ -1,0 +1,22 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.env
+.local/
+test-results/
+*.egg-info/
+.DS_Store
+node_modules/
+frontend/dist/
+
+# Local configurations and generated validation artifacts
+.env.*
+!.env.example
+*.log
+.coverage
+.coverage.*
+htmlcov/
+coverage/
+playwright-report/
+tests/platform/_demo_failure_*.py
