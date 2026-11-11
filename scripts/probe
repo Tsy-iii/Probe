@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
+project_python="$project_root/.venv/bin/python"
+if [[ ! -x "$project_python" ]]; then
+  echo "缺少项目虚拟环境。请按 README 创建 .venv 并安装 requirements.lock.txt。" >&2
+  exit 1
+fi
+if ! "$project_python" -c 'import httpx, psutil, dotenv, sqlalchemy, pydantic_settings' >/dev/null 2>&1; then
+  echo "虚拟环境缺少依赖。请执行 .venv/bin/python -m pip install -r requirements.lock.txt。" >&2
+  exit 1
+fi
+cd "$project_root"
+exec "$project_python" "$project_root/scripts/dev_runtime.py" "$@"

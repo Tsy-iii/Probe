@@ -144,7 +144,23 @@ docker compose up -d postgres
 
 平台表使用 Alembic。订单表采用显式初始化及商品在售状态的 additive SQL 迁移，不属于平台 Alembic 链。seed 不重置已有商品和订单。
 
-### 3. 在不同终端启动组件
+### 3. 启动本地工作台
+
+```bash
+./scripts/probe start
+./scripts/probe status
+
+# 使用完后：
+./scripts/probe stop
+```
+
+启动器检查已准备好的环境，在后台启动缺少的组件并等待就绪。健康的手动服务会被复用，仍由原终端管理；`stop` 只关闭启动器自己启动的服务。PostgreSQL、已有 `.env` 和演示数据保持原样，依赖安装与迁移仍是显式步骤。
+
+日志追加到 `.local/dev-runtime/`。端口被其他程序占用时，启动器报错并保留该程序。平台／前端端口保持 8001／5174。参见[启动、停止与排查说明](docs/local-runtime.md)，了解归属判断、启动失败回收、Worker 停止和退出码。
+
+<details>
+<summary>手动方式：在不同终端启动组件</summary>
+
 
 **平台 API：**
 
@@ -170,6 +186,8 @@ npm run dev
 ```bash
 .venv/bin/python -m uvicorn probe.main:app --host 127.0.0.1 --port 8002
 ```
+
+</details>
 
 自动化 TCP 套件会启动自己的隔离服务，无需固定的演示 API。
 
@@ -201,9 +219,11 @@ cd frontend
 npm run build
 ```
 
-**2026-11-10** 本轮实际验证的本地回归结果：**194 passed、0 failed、0 skipped**，保留 1 条既有 Starlette TestClient 弃用提示。这是带日期的本地验证，不作为 CI 徽章或性能指标。[验证说明](docs/verification.md) 区分本轮检查、历史结果和未验证环境。
+**2026-11-11** 本轮实际验证的本地回归结果：**209 passed、0 failed、0 skipped**，保留 1 条既有 Starlette TestClient 弃用提示。这是带日期的本地验证，不作为 CI 徽章或性能指标。[验证说明](docs/verification.md) 区分本轮检查、历史结果和未验证环境。
 
 默认收集包含 HTTP 契约、PostgreSQL 业务、真实 TCP 请求和平台执行／恢复测试。受控失败演示由平台显式选择；外层测试通过可以表示它正确验证了内层任务的失败。
+
+默认回归新增 15 条本地进程管理集成检查，使用真实临时 HTTP 进程、端口和信号验证启动与停止；这些检查不能据此证明 PostgreSQL 事务正确。
 
 单独的 HTTP 契约测试不能证明数据库事务。PostgreSQL 测试检查真实提交结果、竞争、回滚和清理，每条用例通过 fixture 重建数据。本地浏览器验收使用过 Playwright 脚本，但尚无正式提交的 Playwright 套件。[GitHub Actions](docs/ci.md) 已配置 PostgreSQL 回归与前端构建，[首次云端执行](https://github.com/Tsy-iii/Probe/actions/runs/42786973058)已通过：194 条回归和前端构建。
 
@@ -222,6 +242,7 @@ npm run build
 
 | 读者／任务 | 文档 |
 | --- | --- |
+| 本地启动、状态、停止与服务归属 | [本地运行说明](docs/local-runtime.md) |
 | 中文上手与文档导航 | [中文指南](docs/README.zh-CN.md) |
 | 队列、lease、fencing、隔离与证据 | [架构说明](docs/architecture.md) |
 | 复现检查、理解验证范围 | [验证说明](docs/verification.md) |

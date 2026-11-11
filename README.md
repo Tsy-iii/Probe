@@ -144,7 +144,23 @@ Initialize schemas and demo products:
 
 Platform tables use Alembic. Order tables use explicit initialization plus an additive SQL migration for product availability; they are not part of the platform Alembic chain. Seeding does not reset existing products or orders.
 
-### 3. Start the components in separate terminals
+### 3. Start the local workbench
+
+```bash
+./scripts/probe start
+./scripts/probe status
+
+# When finished:
+./scripts/probe stop
+```
+
+The launcher checks the prepared environment, starts missing components in the background, and waits for readiness. Healthy manually started services are reused and remain unmanaged: `stop` only closes services started by this launcher. PostgreSQL, existing `.env`, and demo data are preserved. Setup and migrations remain explicit steps.
+
+Logs are appended under `.local/dev-runtime/`. An occupied foreign port blocks startup; the launcher does not stop its owner. Platform/frontend ports remain 8001/5174. [Lifecycle behavior and troubleshooting](docs/local-runtime.md) explains ownership, startup rollback, Worker shutdown, and exit codes.
+
+<details>
+<summary>Start components manually in separate terminals</summary>
+
 
 **Platform API:**
 
@@ -170,6 +186,8 @@ npm run dev
 ```bash
 .venv/bin/python -m uvicorn probe.main:app --host 127.0.0.1 --port 8002
 ```
+
+</details>
 
 Automated TCP suites start their own isolated services and do not require the fixed demo API.
 
@@ -201,9 +219,9 @@ cd frontend
 npm run build
 ```
 
-Latest local regression verified on **2026-11-10**: **194 passed, 0 failed, 0 skipped**, with one existing Starlette TestClient deprecation warning. This is a dated local result, not a CI badge or a performance measurement. [Verification details](docs/verification.md) distinguish current checks, historical results, and unverified environments.
+Latest local regression verified on **2026-11-11**: **209 passed, 0 failed, 0 skipped**, with one existing Starlette TestClient deprecation warning. This is a dated local result, not a CI badge or a performance measurement. [Verification details](docs/verification.md) distinguish current checks, historical results, and unverified environments.
 
-The default collection includes HTTP contracts, PostgreSQL business tests, real TCP requests, and platform execution/recovery tests. Controlled failure demos are selected explicitly by the platform; an outer test may pass because it correctly verifies an inner run's failure.
+The default collection includes HTTP contracts, PostgreSQL business tests, real TCP requests, platform execution/recovery tests, and 15 local process-management integration checks. Those 15 checks exercise real temporary HTTP processes and signals; they do not establish PostgreSQL transaction correctness. Controlled failure demos are selected explicitly by the platform; an outer test may pass because it correctly verifies an inner run's failure.
 
 HTTP contracts alone do not prove database transactions. PostgreSQL tests inspect actual committed state, contention, rollback, and cleanup. Database fixtures rebuild data for each case. Browser acceptance has used local Playwright scripts, but there is no committed formal Playwright suite. A [GitHub Actions workflow](docs/ci.md) now runs PostgreSQL regression and frontend build checks; [its first cloud run](https://github.com/Tsy-iii/Probe/actions/runs/42786973058) passed 194 regression checks and the frontend build.
 
@@ -222,6 +240,7 @@ HTTP contracts alone do not prove database transactions. PostgreSQL tests inspec
 
 | Audience / task | Guide |
 | --- | --- |
+| Local start, status, stop, and ownership | [Local lifecycle guide](docs/local-runtime.md) |
 | 中文上手与文档导航 | [Chinese guide index](docs/README.zh-CN.md) |
 | Queue, leases, fencing, isolation, evidence | [Architecture](docs/architecture.md) |
 | Reproduce checks and understand their scope | [Verification](docs/verification.md) |
