@@ -231,6 +231,7 @@ npm run build
 | 历史、关联重跑和报告导出 | [历史与报告](docs/history-and-reports.md) |
 | 演示商品与业务接口 | [商品管理](docs/product-management.md) · [订单操作](docs/demo-order-operations.md) |
 | 执行演示接口回归 | [演示套件](docs/demo-suite.md) |
+| 可复现的受控故障复盘 | [金额、响应丢失与 Worker 恢复](docs/postmortems/README.md) |
 | 开发里程碑 | [开发历史](docs/development-history.md) |
 | GitHub Actions 检查与产物 | [CI 说明](docs/ci.md) |
 | 准备公开发布 | [公开发布检查](docs/public-release.md) |

@@ -55,6 +55,12 @@ npm run build
 - 浏览器接受检查使用过本地 Playwright 脚本，尚未提交正式 UI 测试体系。
 - 两份主 README 的截图和 Mermaid 已在 GitHub 实际加载/渲染核对；其他文档的 GitHub 展示未逐页验收。
 
+## 受控故障复盘验证（2026-11-10）
+
+[三类复盘](postmortems/README.md) 使用现有测试独立复现，不修改业务代码。显式运行金额对照、commit 后响应丢失、SIGKILL Worker、旧写回 fencing 和双 schema 恢复，共 6 条检查，实际为 **1 failed、5 passed、0 errors、0 skipped**，1 条既有弃用提示。
+
+唯一失败是故意错误金额实现，命令退出码 1 符合该实验约定；正确实现和其余检查通过。原始 JUnit 可解析并保留金额/响应丢失的 HTTP 与数据库证据；Worker 用例验证进程、数据和归属断言，没有采集完整 UI 时间线。此结果不是重新执行的完整回归，也不替代既有 194 passed CI 记录。
+
 ## 各类验证能证明什么
 
 | 范围 | 关键验证 | 测试入口 |

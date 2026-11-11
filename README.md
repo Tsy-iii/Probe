@@ -231,6 +231,7 @@ HTTP contracts alone do not prove database transactions. PostgreSQL tests inspec
 | History, reruns, and report exports | [History and reports](docs/history-and-reports.md) |
 | Demo products and business endpoints | [Product management](docs/product-management.md) · [Order operations](docs/demo-order-operations.md) |
 | Run the demo-interface regression | [Demo suite](docs/demo-suite.md) |
+| Reproducible controlled-failure investigations | [Failure investigations](docs/postmortems/README.md) |
 | Development milestones | [Development history](docs/development-history.md) |
 | GitHub Actions checks and artifacts | [CI](docs/ci.md) |
 | Prepare a public release | [Public-release checks](docs/public-release.md) |
