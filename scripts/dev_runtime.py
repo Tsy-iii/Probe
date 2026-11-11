@@ -287,6 +287,13 @@ def matching_process(process, name):
         return False
 
 
+def development_port(environment, name, default):
+    value = environment.get(name, str(default))
+    if not re.fullmatch(r'[0-9]{1,5}', value) or not 1 <= int(value) <= 65535:
+        raise RuntimeErrorDetail(f'{name} must be an integer port between 1 and 65535.')
+    return int(value)
+
+
 def configure():
     from dotenv import dotenv_values
     from sqlalchemy import func, inspect, select, text
@@ -298,7 +305,14 @@ def configure():
     from probe.platform.environment import EnvironmentMonitor
     from probe.platform.models import WorkerRecord
 
+    env = {key: value for key, value in dotenv_values(ROOT / '.env').items() if value is not None}
+    env.update(os.environ)
     order, platform = Settings(), PlatformSettings()
+    platform_port = development_port(env, 'PROBE_DEV_PLATFORM_PORT', 8001)
+    frontend_port = development_port(env, 'PROBE_DEV_FRONTEND_PORT', 5174)
+    ports = [int(platform.order_api_base_url.rsplit(':', 1)[1]), platform_port, frontend_port]
+    if len(set(ports)) != 3 or 5173 in ports:
+        raise RuntimeErrorDetail('Application ports must be distinct; port 5173 is reserved for Discovery.')
     database = Database(platform.database_url, schema=platform.database_schema)
     monitor = EnvironmentMonitor(platform, database)
     demo = Database(order.database_url)
@@ -356,13 +370,13 @@ def configure():
         except (httpx.HTTPError, ValueError):
             return False
 
-    addresses = {'order': platform.order_api_base_url, 'platform': 'http://127.0.0.1:8001', 'frontend': 'http://127.0.0.1:5174'}
+    addresses = {'order': platform.order_api_base_url, 'platform': f'http://127.0.0.1:{platform_port}', 'frontend': f'http://127.0.0.1:{frontend_port}'}
     commands = {'order': [sys.executable, '-m', 'uvicorn', 'probe.main:app', '--host', '127.0.0.1', '--port', addresses['order'].rsplit(':', 1)[1]],
-                'platform': [sys.executable, '-m', 'uvicorn', 'probe.platform.main:app', '--host', '127.0.0.1', '--port', '8001'],
+                'platform': [sys.executable, '-m', 'uvicorn', 'probe.platform.main:app', '--host', '127.0.0.1', '--port', str(platform_port)],
                 'worker': [sys.executable, '-m', 'probe.platform.runner'],
                 # npm 会改写自身进程信息；直接启动 Vite，让归属标记可持续核验。
                 'frontend': [shutil.which('node') or 'node', str(ROOT / 'frontend/node_modules/vite/bin/vite.js'),
-                             '--host', '127.0.0.1', '--port', '5174', '--strictPort']}
+                             '--host', '127.0.0.1', '--port', str(frontend_port), '--strictPort', '--configLoader', 'runner']}
     services = []
     for name in NAMES:
         def existing(name=name):
@@ -383,8 +397,6 @@ def configure():
         ready = worker_ready if name == 'worker' else lambda pid, name=name: http_ready(addresses[name], name)
         services.append(Service(name, commands[name], ROOT / 'frontend' if name == 'frontend' else ROOT,
                                 ready, existing, addresses.get(name, '数据库心跳')))
-    env = {key: value for key, value in dotenv_values(ROOT / '.env').items() if value is not None}
-    env.update(os.environ)
     return Runtime(ROOT, services, environment=env), preflight, close
 
 
@@ -405,7 +417,7 @@ def main():
         if args.command == 'status':
             return 0 if runtime.status() else 1
         preflight(); runtime.start()
-        print('工作台：http://127.0.0.1:5174；数据页：http://127.0.0.1:5174/#data')
+        print(f"工作台：{runtime.services['frontend'].address}；数据页：{runtime.services['frontend'].address}/#data")
         print('日志：.local/dev-runtime/。复用的手动服务不会由 stop 关闭。')
         return 0
     except KeyboardInterrupt:

@@ -2,11 +2,11 @@
 
 仓库：[Tsy-iii/Probe](https://github.com/Tsy-iii/Probe)。工作流：[CI](https://github.com/Tsy-iii/Probe/actions/workflows/ci.yml)，配置在 `.github/workflows/ci.yml`。
 
-## 第一版检查范围
+## 检查范围
 
 | Job | 执行内容 |
 | --- | --- |
-| PostgreSQL regression | Ubuntu 24.04、Python 3.14、PostgreSQL 17；创建四份独立用途的数据库，初始化订单表与平台迁移，运行 Alembic check 和完整 pytest |
+| PostgreSQL regression | Ubuntu 24.04、Python 3.14、PostgreSQL 17；创建四份独立用途的数据库，初始化订单表与平台迁移，运行 Alembic check、完整 pytest 和四组件启动冒烟 |
 | Frontend typecheck and build | Ubuntu 24.04、Node.js 22；npm ci、TypeScript 检查和 Vite 构建 |
 
 测试必须带 `--require-postgres`，数据库缺失会失败。平台测试仍使用临时 schema；CI 的数据库、账号密码和运行数据只属于这次临时环境，不读取真实 `.env`。
@@ -16,13 +16,13 @@
 - 推送到 main、Pull Request 和手动 workflow_dispatch 可以触发。
 - 只修改 Markdown、文档图片或 LICENSE 时跳过自动运行；需要时可手动触发。
 - 同一分支／PR 的新执行会取消过时 CI，减少重复等待。
-- 后端尝试在成功或失败后保存 JUnit 和 pytest 日志，保留 14 天；依赖安装前失败时可能没有测试产物。
+- 后端尝试在成功或失败后保存 JUnit、pytest 日志和已生成的 `runtime-smoke/` 证据，保留 14 天；准备阶段失败时可能没有对应产物。
 - 前端成功构建后保存 dist，保留 14 天；保存构建产物不代表网站已部署。
 - Actions 引用固定到已核对的官方提交 SHA，工作流仅声明 contents: read。
 
 ## 怎样看结果
 
-打开仓库 Actions → CI → 对应执行，分别查看两个 job。后端失败先看失败步骤和 pytest.log，再看 JUnit 中的具体断言；不要把前端构建通过当成接口测试通过。
+打开仓库 Actions → CI → 对应执行，分别查看两个 job。后端 job 还会执行 [完整启动冒烟](runtime-smoke.md)，其契约任务与完整 pytest 分开报告。后端失败先看失败步骤和 pytest.log，再看 JUnit 中的具体断言；不要把前端构建通过当成接口测试通过。
 
 CI 验证的是当前版本代码在指定环境下的测试结果。它不证明性能、生产可用性、任意网络分区或安全沙箱。第一版不包含正式 Playwright UI 回归、部署、定时调度或运行时 AI。
 
@@ -39,3 +39,9 @@ CI 验证的是当前版本代码在指定环境下的测试结果。它不证�
 | 产物 | 后端 JUnit／pytest 日志和前端 dist 已上传并下载核对 |
 
 验证的代码提交为 `5b9df75272f8f7b63a87397fb1fd9e42aec3b32c`。后续只更新 Markdown 说明的提交按 paths-ignore 跳过自动执行，不改变本次验证的程序代码。CI 结果不作为性能或生产容量承诺。
+
+## 启动入口回归（2026-11-11）
+
+提交 `5310537ed45a54bdc52a4fa2b84ad8d2f0c3afe5` 的 [云端执行](https://github.com/Tsy-iii/Probe/actions/runs/42956877095)一次通过：**209 passed、0 failed、0 errors、0 skipped**，其中 15 条为进程管理检查。平台迁移与前端构建通过，JUnit 和日志已下载核对，保留 1 条既有 TestClient 弃用提示。
+
+这条历史执行尚未包含完整四组件启动冒烟。新增 CI 步骤使用虚拟环境、Node.js／前端依赖与默认端口执行 `scripts/runtime_smoke.py --ci`；其云端结果须以应用配置后触发的真实执行为准，不能用本地通过替代。
