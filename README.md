@@ -8,7 +8,7 @@ Select real pytest cases, execute them in isolated attempts, and inspect a failu
 
 Built with **Python · FastAPI · pytest · httpx · PostgreSQL · SQLAlchemy · React · TypeScript · Vite**.
 
-[简体中文](README.zh-CN.md) · [Chinese guide index](docs/README.zh-CN.md) · [Architecture](docs/architecture.md) · [Verification](docs/verification.md)
+[简体中文](README.zh-CN.md) · [Start here](#read-without-running) · [Chinese guide index](docs/README.zh-CN.md) · [Architecture](docs/architecture.md) · [Verification](docs/verification.md)
 
 ![Probe workbench showing a real local test run and its evidence](docs/images/probe-workbench.png)
 
@@ -23,6 +23,20 @@ Built with **Python · FastAPI · pytest · httpx · PostgreSQL · SQLAlchemy ·
 - **Preserve failure evidence:** store request/response data, selected headers, explicit checks, database snapshots, assertion output, and logs before test-data cleanup.
 - **Find and reproduce results:** search and filter history, create linked reruns, reopen report links, and export JUnit XML, logs, and evidence JSON.
 - **Inspect the demo business:** browse products, orders, and payment events; manage demo products and call create/pay/cancel endpoints from the UI.
+
+## Read without running
+
+The included order API is the test target. Probe executes trusted pytest code from this repository; the workbench selects cases, controls jobs, and displays saved results. It does not generate assertions from UI selections.
+
+There is no hosted demo. Start with the screenshots above and below, then follow these concrete implementation and evidence paths without installing the project:
+
+| Question | What to inspect | Entry |
+| --- | --- | --- |
+| How does an order avoid overselling or partial writes? | Conditional stock UPDATE and order INSERT in one transaction; concurrent and rollback assertions | [Order implementation](probe/service.py) · [Order tests](tests/test_orders.py) |
+| Can HTTP 201 still hide a business error? | Expected 3980 cents versus actual 1990, with saved HTTP and database observations | [Controlled amount investigation](docs/postmortems/incorrect-amount.md) |
+| Can an old Worker overwrite a recovered run? | Worker/attempt/state/lease checks, interrupted history, and cleanup verification | [Recovery investigation](docs/postmortems/worker-loss.md) · [Reliability tests](tests/platform/test_reliability.py) |
+
+[Project FAQ (中文)](docs/project-faq.zh-CN.md) explains assertions, test isolation, demo editing, and run/attempt semantics. [Verification](docs/verification.md) and [CI records](docs/ci.md) state the dates, code versions, and limits behind recorded results. To execute a new run, follow [Quick start](#quick-start).
 
 ## Try a run
 
@@ -219,11 +233,11 @@ cd frontend
 npm run build
 ```
 
-Latest local regression verified on **2026-11-11**: **209 passed, 0 failed, 0 skipped**, with one existing Starlette TestClient deprecation warning. This is a dated local result, not a CI badge or a performance measurement. [Verification details](docs/verification.md) distinguish current checks, historical results, and unverified environments.
+Recorded local regression on **2026-11-11**: **209 passed, 0 failed, 0 skipped**, with one existing Starlette TestClient deprecation warning. This is a dated local result, not a CI badge or a performance measurement. [Verification details](docs/verification.md) distinguish current checks, historical results, and unverified environments.
 
 The default collection includes HTTP contracts, PostgreSQL business tests, real TCP requests, platform execution/recovery tests, and 15 local process-management integration checks. Those 15 checks exercise real temporary HTTP processes and signals; they do not establish PostgreSQL transaction correctness. Controlled failure demos are selected explicitly by the platform; an outer test may pass because it correctly verifies an inner run's failure.
 
-HTTP contracts alone do not prove database transactions. PostgreSQL tests inspect actual committed state, contention, rollback, and cleanup. Database fixtures rebuild data for each case. Browser acceptance has used local Playwright scripts, but there is no committed formal Playwright suite. A [GitHub Actions workflow](docs/ci.md) now runs PostgreSQL regression and frontend build checks; [its first cloud run](https://github.com/Tsy-iii/Probe/actions/runs/42786973058) passed 194 regression checks and the frontend build.
+HTTP contracts alone do not prove database transactions. PostgreSQL tests inspect actual committed state, contention, rollback, and cleanup. Database fixtures rebuild data for each case. Browser acceptance has used local Playwright scripts, but there is no committed formal Playwright suite. The [GitHub Actions workflow and dated CI records](docs/ci.md) describe PostgreSQL regression, frontend build, and startup smoke checks for their respective commits. The badge links to current workflow status; dated local and cloud records are separate validation batches.
 
 ## Known limits
 
@@ -242,6 +256,7 @@ HTTP contracts alone do not prove database transactions. PostgreSQL tests inspec
 | --- | --- |
 | Local start, status, stop, and ownership | [Local lifecycle guide](docs/local-runtime.md) |
 | 中文上手与文档导航 | [Chinese guide index](docs/README.zh-CN.md) |
+| Understand the project without setup (中文) | [Project FAQ](docs/project-faq.zh-CN.md) |
 | Queue, leases, fencing, isolation, evidence | [Architecture](docs/architecture.md) |
 | Reproduce checks and understand their scope | [Verification](docs/verification.md) |
 | Order transactions and payment idempotency | [Order design](docs/design.md) |
@@ -265,4 +280,4 @@ Probe does not call an AI service at runtime.
 
 MIT License — see [LICENSE](LICENSE).
 
-Source: [Tsy-iii/Probe](https://github.com/Tsy-iii/Probe) · [Issues](https://github.com/Tsy-iii/Probe/issues) · [GitHub Actions](https://github.com/Tsy-iii/Probe/actions/workflows/ci.yml). The repository is public. No hosted demo is provided; [the first CI run](https://github.com/Tsy-iii/Probe/actions/runs/42786973058) passed, and the CI badge reflects the workflow status.
+Source: [Tsy-iii/Probe](https://github.com/Tsy-iii/Probe) · [Issues](https://github.com/Tsy-iii/Probe/issues) · [GitHub Actions](https://github.com/Tsy-iii/Probe/actions/workflows/ci.yml). The repository is public; the CI badge links to workflow status. Specific historical executions are documented in the CI guide.

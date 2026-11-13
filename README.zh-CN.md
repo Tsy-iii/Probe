@@ -8,7 +8,7 @@
 
 技术栈：**Python · FastAPI · pytest · httpx · PostgreSQL · SQLAlchemy · React · TypeScript · Vite**。
 
-[English](README.md) · [中文文档导航](docs/README.zh-CN.md) · [架构说明](docs/architecture.md) · [验证记录](docs/verification.md)
+[English](README.md) · [先看这里](#不启动也能了解项目) · [中文文档导航](docs/README.zh-CN.md) · [架构说明](docs/architecture.md) · [验证记录](docs/verification.md)
 
 ![Probe 工作台：真实本地测试执行及请求证据](docs/images/probe-workbench.png)
 
@@ -23,6 +23,20 @@
 - **保留失败证据**：在测试数据清理前保存请求响应、选定请求头、检查项、数据库快照、断言输出和日志。
 - **查询与复现结果**：搜索和筛选历史，创建关联的新执行，重新打开报告链接，导出 JUnit XML、日志和证据 JSON。
 - **体验被测业务**：浏览商品、订单和支付事件，管理演示商品，并从页面调用创建订单、支付和取消接口。
+
+## 不启动也能了解项目
+
+项目内的订单 API 是测试对象。Probe 执行仓库中受信任的 pytest 代码；前端负责选择用例、控制任务和展示已保存的结果，不会根据页面选择自动生成断言。
+
+当前没有托管演示网站。无需安装项目，可以先看上下两张截图，再沿下面三条具体的实现与证据路径阅读：
+
+| 想了解的问题 | 重点看什么 | 入口 |
+| --- | --- | --- |
+| 下单怎样避免超卖和部分写入？ | 条件扣库存与订单写入共用事务；并发和回滚后的数据库断言 | [订单实现](probe/service.py) · [订单测试](tests/test_orders.py) |
+| HTTP 201 为什么仍可能有业务错误？ | 总额预期 3980 分、实际 1990 分，以及保存的 HTTP／数据库观察 | [金额错误复盘](docs/postmortems/incorrect-amount.md) |
+| 旧 Worker 为什么不能覆盖恢复后的结果？ | Worker、attempt、状态和 lease 检查，以及旧尝试和清理验证 | [恢复复盘](docs/postmortems/worker-loss.md) · [可靠性测试](tests/platform/test_reliability.py) |
+
+[项目问答](docs/project-faq.zh-CN.md) 解释断言位置、测试隔离、演示编辑与 run／attempt。[验证记录](docs/verification.md) 和 [CI 记录](docs/ci.md) 标明对应的日期、代码版本及验证边界。需要实际执行时，再按[快速开始](#快速开始)准备环境。
 
 ## 典型使用流程
 
@@ -219,13 +233,13 @@ cd frontend
 npm run build
 ```
 
-**2026-11-11** 本轮实际验证的本地回归结果：**209 passed、0 failed、0 skipped**，保留 1 条既有 Starlette TestClient 弃用提示。这是带日期的本地验证，不作为 CI 徽章或性能指标。[验证说明](docs/verification.md) 区分本轮检查、历史结果和未验证环境。
+记录于 **2026-11-11** 的本地回归结果：**209 passed、0 failed、0 skipped**，保留 1 条既有 Starlette TestClient 弃用提示。这是带日期的本地验证，不作为 CI 徽章或性能指标。[验证说明](docs/verification.md) 按记录日期区分检查结果、历史批次和未验证环境。
 
 默认收集包含 HTTP 契约、PostgreSQL 业务、真实 TCP 请求和平台执行／恢复测试。受控失败演示由平台显式选择；外层测试通过可以表示它正确验证了内层任务的失败。
 
 默认回归新增 15 条本地进程管理集成检查，使用真实临时 HTTP 进程、端口和信号验证启动与停止；这些检查不能据此证明 PostgreSQL 事务正确。
 
-单独的 HTTP 契约测试不能证明数据库事务。PostgreSQL 测试检查真实提交结果、竞争、回滚和清理，每条用例通过 fixture 重建数据。本地浏览器验收使用过 Playwright 脚本，但尚无正式提交的 Playwright 套件。[GitHub Actions](docs/ci.md) 已配置 PostgreSQL 回归与前端构建，[首次云端执行](https://github.com/Tsy-iii/Probe/actions/runs/42786973058)已通过：194 条回归和前端构建。
+单独的 HTTP 契约测试不能证明数据库事务。PostgreSQL 测试检查真实提交结果、竞争、回滚和清理，每条用例通过 fixture 重建数据。本地浏览器验收使用过 Playwright 脚本，但尚无正式提交的 Playwright 套件。[GitHub Actions 配置与分批记录](docs/ci.md) 说明对应提交的 PostgreSQL 回归、前端构建和启动冒烟检查。徽章链接到工作流状态；带日期的本地结果与云端结果属于不同验证批次。
 
 ## 已知边界
 
@@ -244,6 +258,7 @@ npm run build
 | --- | --- |
 | 本地启动、状态、停止与服务归属 | [本地运行说明](docs/local-runtime.md) |
 | 中文上手与文档导航 | [中文指南](docs/README.zh-CN.md) |
+| 不启动也能理解项目与测试边界 | [项目问答](docs/project-faq.zh-CN.md) |
 | 队列、lease、fencing、隔离与证据 | [架构说明](docs/architecture.md) |
 | 复现检查、理解验证范围 | [验证说明](docs/verification.md) |
 | 订单事务与支付幂等 | [订单设计](docs/design.md) |
@@ -267,4 +282,4 @@ Probe 运行时不调用 AI 服务。
 
 MIT License，见 [LICENSE](LICENSE)。
 
-源码：[Tsy-iii/Probe](https://github.com/Tsy-iii/Probe) · [Issues](https://github.com/Tsy-iii/Probe/issues) · [GitHub Actions](https://github.com/Tsy-iii/Probe/actions/workflows/ci.yml)。仓库公开，没有提供托管演示网站；[首次 CI](https://github.com/Tsy-iii/Probe/actions/runs/42786973058)已真实通过；CI 徽章动态显示工作流状态。
+源码：[Tsy-iii/Probe](https://github.com/Tsy-iii/Probe) · [Issues](https://github.com/Tsy-iii/Probe/issues) · [GitHub Actions](https://github.com/Tsy-iii/Probe/actions/workflows/ci.yml)。仓库公开；CI 徽章链接到工作流状态，具体历史执行记录见 CI 说明。
